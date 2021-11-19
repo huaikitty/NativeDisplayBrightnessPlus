@@ -1,7 +1,7 @@
 # NativeDisplayBrightnessPlus
 
-*2012款MACBOOK PRO使用EGPU外置显卡教程:*  [http://1vr.cn/?p=2239](http://1vr.cn/?p=2239)
-
+*2012款MACBOOK PRO使用EGPU外置显卡教程:*  [http://1vr.cn/?p=2239](http://1vr.cn/?p=2239)i
+test edit this file
 *使用热键控制外屏显示器的亮度,色温,输入源等*
 
 ![](Info/NewUI.jpg)
