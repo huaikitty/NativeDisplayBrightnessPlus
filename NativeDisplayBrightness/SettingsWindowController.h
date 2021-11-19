@@ -32,5 +32,6 @@
 @property (weak) IBOutlet NSPopUpButton *colorTemperatureMoreWarmKey;
 
 @property (weak) IBOutlet NSPopUpButton *changeInputSourceKey;
+@property (weak) IBOutlet NSTextField *inputSourceCode;
 
 @end

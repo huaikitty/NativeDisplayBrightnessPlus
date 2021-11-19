@@ -39,12 +39,19 @@
 @property (nonatomic, strong) NSString *decreaseBrightnessKey;
 
 @property (nonatomic, strong) NSString *changeInputSourceKey;
+@property (nonatomic, strong) NSString *inputSourceCode;
 
 @property (nonatomic, assign) BOOL adjustColorTemperature;
 @property (nonatomic, assign) float colorTemperatureLimit;
 
 @property (nonatomic, strong) NSString *colorTemperatureLessWarmKey;
 @property (nonatomic, strong) NSString *colorTemperatureMoreWarmKey;
+
+@property (nonatomic, assign) NSEventModifierFlags decreaseFnKey;
+@property (nonatomic, assign) NSEventModifierFlags increaseFnKey;
+@property (nonatomic, assign) NSEventModifierFlags lessWarmFnKey;
+@property (nonatomic, assign) NSEventModifierFlags moreWarmFnKey;
+@property (nonatomic, assign) NSEventModifierFlags changeInputSourceFnKey;
 
 +(BOOL)loadSavedBrightness:(uint*) savedBrightness forDisplayID:(CGDirectDisplayID) displayID;
 
