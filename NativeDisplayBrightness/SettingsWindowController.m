@@ -11,6 +11,33 @@
 
 @interface SettingsWindowController ()
 
+@property (weak) IBOutlet NSButton *decreaseFnShift;
+@property (weak) IBOutlet NSButton *decreaseFnControl;
+@property (weak) IBOutlet NSButton *decreaseFnOption;
+@property (weak) IBOutlet NSButton *decreaseFnCommand;
+
+@property (weak) IBOutlet NSButton *increaseFnShift;
+@property (weak) IBOutlet NSButton *increaseFnControl;
+@property (weak) IBOutlet NSButton *increaseFnOption;
+@property (weak) IBOutlet NSButton *increaseFnCommand;
+
+@property (weak) IBOutlet NSButton *lessWarmFnShift;
+@property (weak) IBOutlet NSButton *lessWarmFnControl;
+@property (weak) IBOutlet NSButton *lessWarmFnOption;
+@property (weak) IBOutlet NSButton *lessWarmFnCommand;
+
+@property (weak) IBOutlet NSButton *moreWarmFnShift;
+@property (weak) IBOutlet NSButton *moreWarmFnControl;
+@property (weak) IBOutlet NSButton *moreWarmFnOption;
+@property (weak) IBOutlet NSButton *moreWarmFnCommand;
+
+@property (weak) IBOutlet NSButton *changeInputSourceFnShift;
+@property (weak) IBOutlet NSButton *changeInputSourceFnControl;
+@property (weak) IBOutlet NSButton *changeInputSourceFnOption;
+@property (weak) IBOutlet NSButton *changeInputSourceFnCommand;
+
+- (NSEventModifierFlags)calculateModifierFlags:(NSEventModifierFlags)modifierFlags sender:(NSButton *)sender;
+
 @end
 
 @implementation SettingsWindowController
@@ -42,6 +69,32 @@
     //更改输入源 202009281927
     [self.changeInputSourceKey
         selectItemWithTitle:APP_DELEGATE.changeInputSourceKey];
+    [self.inputSourceCode setPlaceholderString:APP_DELEGATE.inputSourceCode];
+    
+    self.decreaseFnShift.state = APP_DELEGATE.decreaseFnKey & NSEventModifierFlagShift;
+    self.decreaseFnControl.state = APP_DELEGATE.decreaseFnKey & NSEventModifierFlagControl;
+    self.decreaseFnOption.state = APP_DELEGATE.decreaseFnKey & NSEventModifierFlagOption;
+    self.decreaseFnCommand.state = APP_DELEGATE.decreaseFnKey & NSEventModifierFlagCommand;
+    
+    self.increaseFnShift.state = APP_DELEGATE.increaseFnKey & NSEventModifierFlagShift;
+    self.increaseFnControl.state = APP_DELEGATE.increaseFnKey & NSEventModifierFlagControl;
+    self.increaseFnOption.state = APP_DELEGATE.increaseFnKey & NSEventModifierFlagOption;
+    self.increaseFnCommand.state = APP_DELEGATE.increaseFnKey & NSEventModifierFlagCommand;
+    
+    self.lessWarmFnShift.state = APP_DELEGATE.lessWarmFnKey & NSEventModifierFlagShift;
+    self.lessWarmFnControl.state = APP_DELEGATE.lessWarmFnKey & NSEventModifierFlagControl;
+    self.lessWarmFnOption.state = APP_DELEGATE.lessWarmFnKey & NSEventModifierFlagOption;
+    self.lessWarmFnCommand.state = APP_DELEGATE.lessWarmFnKey & NSEventModifierFlagCommand;
+    
+    self.moreWarmFnShift.state = APP_DELEGATE.moreWarmFnKey & NSEventModifierFlagShift;
+    self.moreWarmFnControl.state = APP_DELEGATE.moreWarmFnKey & NSEventModifierFlagControl;
+    self.moreWarmFnOption.state = APP_DELEGATE.moreWarmFnKey & NSEventModifierFlagOption;
+    self.moreWarmFnCommand.state = APP_DELEGATE.moreWarmFnKey & NSEventModifierFlagCommand;
+    
+    self.changeInputSourceFnShift.state = APP_DELEGATE.changeInputSourceFnKey & NSEventModifierFlagShift;
+    self.changeInputSourceFnControl.state = APP_DELEGATE.changeInputSourceFnKey & NSEventModifierFlagControl;
+    self.changeInputSourceFnOption.state = APP_DELEGATE.changeInputSourceFnKey & NSEventModifierFlagOption;
+    self.changeInputSourceFnCommand.state = APP_DELEGATE.changeInputSourceFnKey & NSEventModifierFlagCommand;
     
     [self updateKeys];
     
@@ -98,6 +151,50 @@
 //更改输入源 202009281927
 - (IBAction)changeChangeInputSourceKey:(NSPopUpButton *)sender {
     APP_DELEGATE.changeInputSourceKey = sender.selectedItem.title;
+    [self updateKeys];
+}
+
+- (IBAction)changeInputSourceCode:(NSTextField *)sender {
+    APP_DELEGATE.inputSourceCode = sender.stringValue;
+    [self updateKeys];
+}
+
+- (NSEventModifierFlags)calculateModifierFlags:(NSEventModifierFlags)modifierFlags sender:(NSButton *)sender {
+    switch (sender.tag % 10) {
+        case 0:
+            return sender.state == NSControlStateValueOn ? modifierFlags | NSEventModifierFlagShift : modifierFlags & ~NSEventModifierFlagShift;
+        case 1:
+            return sender.state == NSControlStateValueOn ? modifierFlags | NSEventModifierFlagControl : modifierFlags & ~NSEventModifierFlagControl;
+        case 2:
+            return sender.state == NSControlStateValueOn ? modifierFlags | NSEventModifierFlagOption : modifierFlags & ~NSEventModifierFlagOption;
+        case 3:
+            return sender.state == NSControlStateValueOn ? modifierFlags | NSEventModifierFlagCommand : modifierFlags & ~NSEventModifierFlagCommand;
+        default:
+            return 0;
+    }
+}
+
+- (IBAction)changeFunctionKey:(NSButton *)sender {
+    switch (sender.tag / 10) {
+        case 0:
+            APP_DELEGATE.decreaseFnKey = [self calculateModifierFlags:APP_DELEGATE.decreaseFnKey sender:sender];
+            break;
+        case 1:
+            APP_DELEGATE.increaseFnKey = [self calculateModifierFlags:APP_DELEGATE.increaseFnKey sender:sender];
+            break;
+        case 2:
+            APP_DELEGATE.lessWarmFnKey = [self calculateModifierFlags:APP_DELEGATE.lessWarmFnKey sender:sender];
+            break;
+        case 3:
+            APP_DELEGATE.moreWarmFnKey = [self calculateModifierFlags:APP_DELEGATE.moreWarmFnKey sender:sender];
+            break;
+        case 4:
+            APP_DELEGATE.changeInputSourceFnKey = [self calculateModifierFlags:APP_DELEGATE.changeInputSourceFnKey sender:sender];
+            break;
+            
+        default:
+            break;
+    }
     [self updateKeys];
 }
 
@@ -178,6 +275,16 @@
     
     self.colorTemperatureMoreWarmKeyLabel.textColor = color;
     self.colorTemperatureMoreWarmKey.enabled = state;
+    
+    self.lessWarmFnShift.enabled = state;
+    self.lessWarmFnControl.enabled = state;
+    self.lessWarmFnOption.enabled = state;
+    self.lessWarmFnCommand.enabled = state;
+    
+    self.moreWarmFnShift.enabled = state;
+    self.moreWarmFnControl.enabled = state;
+    self.moreWarmFnOption.enabled = state;
+    self.moreWarmFnCommand.enabled = state;
 }
 
 @end

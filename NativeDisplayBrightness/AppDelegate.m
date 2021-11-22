@@ -142,12 +142,14 @@ static void showBrightnessLevelPaneOnDisplay (uint brightnessLevelInSubsteps, CG
         {
             BOOL isOptionModifierPressed = (event.modifierFlags & NSAlternateKeyMask) != 0 || self.smoothStep;
             
-            if ((event.keyCode == [[self.keys valueForKey:self.decreaseBrightnessKey] unsignedShortValue]) ||
-                (event.keyCode == [[self.keys valueForKey:self.increaseBrightnessKey] unsignedShortValue]))
-            {
+            if (((event.keyCode == [[self.keys valueForKey:self.decreaseBrightnessKey] unsignedShortValue]) &&
+                 ((self.decreaseFnKey == 0) || (event.modifierFlags & self.decreaseFnKey))) ||
+                ((event.keyCode == [[self.keys valueForKey:self.increaseBrightnessKey] unsignedShortValue]) &&
+                 ((self.increaseFnKey == 0) || (event.modifierFlags & self.increaseFnKey)))) {
                 // Screen brightness adjustment
                 int brightnessDelta = isOptionModifierPressed ? 1 : brightnessSubstepsPerStep;
-                if (event.keyCode == [[self.keys valueForKey:self.decreaseBrightnessKey] unsignedShortValue]) {
+                if ((event.keyCode == [[self.keys valueForKey:self.decreaseBrightnessKey] unsignedShortValue]) &&
+                    ((self.decreaseFnKey == 0) || (event.modifierFlags & self.decreaseFnKey))) {
                     // default F1 = decrease brightness
                     brightnessDelta = -brightnessDelta;
                 }
@@ -157,15 +159,19 @@ static void showBrightnessLevelPaneOnDisplay (uint brightnessLevelInSubsteps, CG
                 });
             }
             //更改输入源 202009281921
-            if (event.keyCode == [[self.keys valueForKey:self.changeInputSourceKey] unsignedShortValue]){
-                [AppDelegate ChangeInputSource:18];
+            if ((event.keyCode == [[self.keys valueForKey:self.changeInputSourceKey] unsignedShortValue]) &&
+                ((self.changeInputSourceFnKey == 0) || (event.modifierFlags & self.changeInputSourceFnKey))) {
+                [AppDelegate ChangeInputSource: [APP_DELEGATE.inputSourceCode intValue]];
             }
             
             
-            if (event.keyCode == [[self.keys valueForKey:self.colorTemperatureLessWarmKey] unsignedShortValue] ||
-                event.keyCode == [[self.keys valueForKey:self.colorTemperatureMoreWarmKey] unsignedShortValue]) {
+            if (((event.keyCode == [[self.keys valueForKey:self.colorTemperatureLessWarmKey] unsignedShortValue]) &&
+                 ((self.lessWarmFnKey == 0) || (event.modifierFlags & self.lessWarmFnKey))) ||
+                ((event.keyCode == [[self.keys valueForKey:self.colorTemperatureMoreWarmKey] unsignedShortValue]) &&
+                 ((self.moreWarmFnKey == 0) || (event.modifierFlags & self.moreWarmFnKey)))) {
                 float valueStep = COLOR_TEMPERATURE_STEP;
-                valueStep = (event.keyCode == [[self.keys valueForKey:self.colorTemperatureLessWarmKey] unsignedShortValue]) ? -valueStep : valueStep;
+                valueStep = ((event.keyCode == [[self.keys valueForKey:self.colorTemperatureLessWarmKey] unsignedShortValue]) &&
+                             ((self.lessWarmFnKey == 0) || (event.modifierFlags & self.lessWarmFnKey))) ? -valueStep : valueStep;
                 [AppDelegate changeScreenColorTemperatureStep:valueStep];
             }
         }
@@ -440,6 +446,78 @@ void shutdownSignalHandler(int signal)
 
 - (void)setChangeInputSourceKey:(NSString *)changeInputSourceKeyCode {
     [NSUserDefaults.standardUserDefaults setObject:changeInputSourceKeyCode forKey:@"changeInputSourceKey"];
+}
+
+- (NSString *)inputSourceCode {
+    id inputSourceCode = [NSUserDefaults.standardUserDefaults valueForKey:@"inputSourceCode"];
+    if (!inputSourceCode) {
+        return @"18";
+    }
+    return inputSourceCode;
+}
+
+- (void)setInputSourceCode:(NSString *)inputSourceCode {
+    [NSUserDefaults.standardUserDefaults setObject:inputSourceCode forKey:@"inputSourceCode"];
+}
+
+- (NSEventModifierFlags)decreaseFnKey {
+    id fnKeyCode = [NSUserDefaults.standardUserDefaults valueForKey:@"decreaseFnKey"];
+    if (!fnKeyCode) {
+        return 0;
+    }
+    return [fnKeyCode unsignedIntValue];
+}
+
+- (void)setDecreaseFnKey:(NSEventModifierFlags)decreaseFnKey {
+    [NSUserDefaults.standardUserDefaults setInteger:decreaseFnKey forKey:@"decreaseFnKey"];
+}
+
+- (NSEventModifierFlags)increaseFnKey {
+    id fnKeyCode = [NSUserDefaults.standardUserDefaults valueForKey:@"increaseFnKey"];
+    if (!fnKeyCode) {
+        return 0;
+    }
+    return [fnKeyCode unsignedIntValue];
+}
+
+- (void)setIncreaseFnKey:(NSEventModifierFlags)increaseFnKey {
+    [NSUserDefaults.standardUserDefaults setInteger:increaseFnKey forKey:@"increaseFnKey"];
+}
+
+- (NSEventModifierFlags)lessWarmFnKey {
+    id fnKeyCode = [NSUserDefaults.standardUserDefaults valueForKey:@"lessWarmFnKey"];
+    if (!fnKeyCode) {
+        return 0;
+    }
+    return [fnKeyCode unsignedIntValue];
+}
+
+- (void)setLessWarmFnKey:(NSEventModifierFlags)lessWarmFnKey {
+    [NSUserDefaults.standardUserDefaults setInteger:lessWarmFnKey forKey:@"lessWarmFnKey"];
+}
+
+- (NSEventModifierFlags)moreWarmFnKey {
+    id fnKeyCode = [NSUserDefaults.standardUserDefaults valueForKey:@"moreWarmFnKey"];
+    if (!fnKeyCode) {
+        return 0;
+    }
+    return [fnKeyCode unsignedIntValue];
+}
+
+- (void)setMoreWarmFnKey:(NSEventModifierFlags)moreWarmFnKey {
+    [NSUserDefaults.standardUserDefaults setInteger:moreWarmFnKey forKey:@"moreWarmFnKey"];
+}
+
+- (NSEventModifierFlags)changeInputSourceFnKey {
+    id fnKeyCode = [NSUserDefaults.standardUserDefaults valueForKey:@"changeInputSourceFnKey"];
+    if (!fnKeyCode) {
+        return 0;
+    }
+    return [fnKeyCode unsignedIntValue];
+}
+
+- (void)setChangeInputSourceFnKey:(NSEventModifierFlags)changeInputSourceFnKey {
+    [NSUserDefaults.standardUserDefaults setInteger:changeInputSourceFnKey forKey:@"changeInputSourceFnKey"];
 }
 
 
