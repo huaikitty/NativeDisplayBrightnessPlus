@@ -56,27 +56,56 @@ static BOOL get_control(CGDirectDisplayID display_id, uint control_id, uint* cur
     return isCommandOk;
 }
 
-static CGEventRef keyboardCGEventCallback(CGEventTapProxy proxy,
-                                          CGEventType type,
-                                          CGEventRef event,
-                                          void *refcon)
-{
-    //Surpress the F1/F2 key events to prevent other applications from catching it or playing beep sound
-    if (type == NX_KEYDOWN || type == NX_KEYUP || type == NX_FLAGSCHANGED)
-    {
-        int64_t keyCode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
-        if (keyCode == [[APP_DELEGATE.keys valueForKey:APP_DELEGATE.increaseBrightnessKey] unsignedShortValue] ||
-            keyCode == [[APP_DELEGATE.keys valueForKey:APP_DELEGATE.decreaseBrightnessKey] unsignedShortValue] ||
-            keyCode == [[APP_DELEGATE.keys valueForKey:APP_DELEGATE.colorTemperatureLessWarmKey] unsignedShortValue] ||
-            keyCode == [[APP_DELEGATE.keys valueForKey:APP_DELEGATE.colorTemperatureMoreWarmKey] unsignedShortValue] ||
-            keyCode == [[APP_DELEGATE.keys valueForKey:APP_DELEGATE.changeInputSourceKey] unsignedShortValue])
-            //更改输入源 202009281921
-        {
-            return NULL;
-        }
-    }
-    return event;
-}
+//static CGEventRef keyboardCGEventCallback(CGEventTapProxy proxy,
+//                                          CGEventType type,
+//                                          CGEventRef event,
+//                                          void *refcon)
+//{
+//    //Surpress the Hot key events to prevent other applications from catching it or playing beep sound
+//    //防止在其它应用程序中按下调节热键造成的重复执行或无效按键的声音.但是会占用掉其它程序的热键.如F2被独占.
+//
+//    //--------------
+//    if (type == NX_KEYDOWN || type == NX_KEYUP || type == NX_FLAGSCHANGED)
+//    {
+//
+////        ((event.keyCode == [[self.keys valueForKey:self.decreaseBrightnessKey] unsignedShortValue]) && ((self.decreaseFnKey == 0) || (event.modifierFlags & self.decreaseFnKey)))
+//
+//
+//        int64_t keyCode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
+//
+//
+//        NSLog(@"key: %lld",CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode));
+//
+//        NSUInteger modifier = NSShiftKeyMask;
+//
+//        CGEventGetIntegerValueField(event,keyModifiers);
+//
+//        if(
+//            ((keyCode == [[APP_DELEGATE.keys valueForKey:APP_DELEGATE.increaseBrightnessKey] unsignedShortValue]) &&  [NSEvent modifierFlags]==modifier)  ||
+//
+//
+//           (keyCode == [[APP_DELEGATE.keys valueForKey:APP_DELEGATE.decreaseBrightnessKey] unsignedShortValue]) ||
+//
+//            ((keyCode == [[APP_DELEGATE.keys valueForKey:APP_DELEGATE.decreaseBrightnessKey] unsignedShortValue]) && [NSEvent modifierFlags]==modifier) ||
+//            ((keyCode == [[APP_DELEGATE.keys valueForKey:APP_DELEGATE.colorTemperatureLessWarmKey] unsignedShortValue]) && APP_DELEGATE.lessWarmFnKey) ||
+//            ((keyCode == [[APP_DELEGATE.keys valueForKey:APP_DELEGATE.colorTemperatureMoreWarmKey] unsignedShortValue]) && APP_DELEGATE.moreWarmFnKey) ||
+//            ((keyCode == [[APP_DELEGATE.keys valueForKey:APP_DELEGATE.changeInputSourceKey] unsignedShortValue]) && APP_DELEGATE.changeInputSourceFnKey)
+//
+//
+//          // keyCode ==( [[APP_DELEGATE.keys valueForKey:APP_DELEGATE.increaseBrightnessKey] unsignedShortValue] + [[APP_DELEGATE.keys valueForKey:APP_DELEGATE.increaseFnKey] unsignedShortValue])
+////           (keyCode ==( [[APP_DELEGATE.keys valueForKey:APP_DELEGATE.increaseBrightnessKey] unsignedShortValue] && APP_DELEGATE.increaseFnKey valueForKey:APP_DELEGATE.increaseFnKey] unsignedShortValue]) )
+//            )
+//
+//        {
+//            return NULL;
+//        }
+//    }
+//
+//    //--------------
+//
+//
+//    return event;
+//}
 
 static void showBrightnessLevelPaneOnDisplay (uint brightnessLevelInSubsteps, CGDirectDisplayID displayId)
 {
@@ -142,52 +171,61 @@ static void showBrightnessLevelPaneOnDisplay (uint brightnessLevelInSubsteps, CG
         {
             BOOL isOptionModifierPressed = (event.modifierFlags & NSAlternateKeyMask) != 0 || self.smoothStep;
             
-            if (((event.keyCode == [[self.keys valueForKey:self.decreaseBrightnessKey] unsignedShortValue]) &&
-                 ((self.decreaseFnKey == 0) || (event.modifierFlags & self.decreaseFnKey))) ||
-                ((event.keyCode == [[self.keys valueForKey:self.increaseBrightnessKey] unsignedShortValue]) &&
-                 ((self.increaseFnKey == 0) || (event.modifierFlags & self.increaseFnKey)))) {
-                // Screen brightness adjustment
-                int brightnessDelta = isOptionModifierPressed ? 1 : brightnessSubstepsPerStep;
-                if ((event.keyCode == [[self.keys valueForKey:self.decreaseBrightnessKey] unsignedShortValue]) &&
-                    ((self.decreaseFnKey == 0) || (event.modifierFlags & self.decreaseFnKey))) {
+            // Screen brightness adjustment 是大步伐调节还是小步伐调节.
+            int brightnessDelta = isOptionModifierPressed ? 1 : brightnessSubstepsPerStep;
+            
+            
+            
+            //如果热键是增加或减少亮度
+//
+                if (
+                    (event.keyCode == [[self.keys valueForKey:self.decreaseBrightnessKey] unsignedShortValue]) && ((self.decreaseFnKey == 0) || (event.modifierFlags & self.decreaseFnKey))
+                    )
+                {
                     // default F1 = decrease brightness
-                    brightnessDelta = -brightnessDelta;
+                    dispatch_async(dispatch_get_main_queue(), ^{[AppDelegate changeMainScreenBrightnessWithStep: -brightnessDelta];});
+                }else if(
+                         (event.keyCode == [[self.keys valueForKey:self.increaseBrightnessKey] unsignedShortValue]) && ((self.increaseFnKey == 0) || (event.modifierFlags & self.increaseFnKey))
+                         )
+                {
+                    dispatch_async(dispatch_get_main_queue(), ^{[AppDelegate changeMainScreenBrightnessWithStep: brightnessDelta];});
                 }
+            
+//
                 
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [AppDelegate changeMainScreenBrightnessWithStep: brightnessDelta];
-                });
-            }
-            //更改输入源 202009281921
+//            }
+            //更改增加输入源的控制 202009281921
             if ((event.keyCode == [[self.keys valueForKey:self.changeInputSourceKey] unsignedShortValue]) &&
                 ((self.changeInputSourceFnKey == 0) || (event.modifierFlags & self.changeInputSourceFnKey))) {
                 [AppDelegate ChangeInputSource: [APP_DELEGATE.inputSourceCode intValue]];
             }
             
+            float valueStep = COLOR_TEMPERATURE_STEP;
             
-            if (((event.keyCode == [[self.keys valueForKey:self.colorTemperatureLessWarmKey] unsignedShortValue]) &&
-                 ((self.lessWarmFnKey == 0) || (event.modifierFlags & self.lessWarmFnKey))) ||
-                ((event.keyCode == [[self.keys valueForKey:self.colorTemperatureMoreWarmKey] unsignedShortValue]) &&
-                 ((self.moreWarmFnKey == 0) || (event.modifierFlags & self.moreWarmFnKey)))) {
-                float valueStep = COLOR_TEMPERATURE_STEP;
-                valueStep = ((event.keyCode == [[self.keys valueForKey:self.colorTemperatureLessWarmKey] unsignedShortValue]) &&
-                             ((self.lessWarmFnKey == 0) || (event.modifierFlags & self.lessWarmFnKey))) ? -valueStep : valueStep;
+            
+            if ((event.keyCode == [[self.keys valueForKey:self.colorTemperatureLessWarmKey] unsignedShortValue]) &&
+                 ((self.lessWarmFnKey == 0) || (event.modifierFlags & self.lessWarmFnKey))){
+                [AppDelegate changeScreenColorTemperatureStep:-valueStep];
+            }else if((event.keyCode == [[self.keys valueForKey:self.colorTemperatureMoreWarmKey] unsignedShortValue]) &&
+                     ((self.moreWarmFnKey == 0) || (event.modifierFlags & self.moreWarmFnKey))){
                 [AppDelegate changeScreenColorTemperatureStep:valueStep];
             }
         }
     }];
     
-    CFRunLoopRef runloop = (CFRunLoopRef)CFRunLoopGetCurrent();
-    CGEventMask interestedEvents = NX_KEYDOWNMASK | NX_KEYUPMASK | NX_FLAGSCHANGEDMASK;
-    CFMachPortRef eventTap = CGEventTapCreate(kCGAnnotatedSessionEventTap, kCGHeadInsertEventTap,
-                                              kCGEventTapOptionDefault, interestedEvents, keyboardCGEventCallback, (__bridge void * _Nullable)(self));
-    // by passing self as last argument, you can later send events to this class instance
     
-    CFRunLoopSourceRef source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault,
-                                                              eventTap, 0);
-    CFRunLoopAddSource((CFRunLoopRef)runloop, source, kCFRunLoopCommonModes);
-    
-    CGEventTapEnable(eventTap, true);
+    //用于阻止热键在其它未设置相同热键时产生的热键无效提示音.
+//    CFRunLoopRef runloop = (CFRunLoopRef)CFRunLoopGetCurrent();
+//    CGEventMask interestedEvents = NX_KEYDOWNMASK | NX_KEYUPMASK | NX_FLAGSCHANGEDMASK;
+//    CFMachPortRef eventTap = CGEventTapCreate(kCGAnnotatedSessionEventTap, kCGHeadInsertEventTap,
+//                                              kCGEventTapOptionDefault, interestedEvents, keyboardCGEventCallback, (__bridge void * _Nullable)(self));
+//    // by passing self as last argument, you can later send events to this class instance
+//
+//    CFRunLoopSourceRef source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault,
+//                                                              eventTap, 0);
+//    CFRunLoopAddSource((CFRunLoopRef)runloop, source, kCFRunLoopCommonModes);
+//
+//    CGEventTapEnable(eventTap, true);
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
@@ -451,7 +489,7 @@ void shutdownSignalHandler(int signal)
 - (NSString *)inputSourceCode {
     id inputSourceCode = [NSUserDefaults.standardUserDefaults valueForKey:@"inputSourceCode"];
     if (!inputSourceCode) {
-        return @"18";
+        return @"18";//default value.
     }
     return inputSourceCode;
 }
